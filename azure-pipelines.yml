@@ -6,6 +6,9 @@ trigger:
 variables:
   buildConfiguration: 'Release'
   vmImageName: 'ubuntu-latest'
+  apiWorkingDirectory: ApplicationUi
+  uiWorkingDirectory: ApplicationUi
+
 
 stages:
 - stage: Build
@@ -20,7 +23,7 @@ stages:
       inputs:
         command: 'test'
         publishWebProjects: false
-        projects: 'ApplicationApi/Azure.CI.CD.Demo.API.Tests/Azure.CI.CD.Demo.API.Tests.csproj'
+        projects: '$(apiWorkingDirectory)/Azure.CI.CD.Demo.API.Tests/Azure.CI.CD.Demo.API.Tests.csproj'
         publishTestResults: true
       displayName: 'dotnet test'
 
@@ -28,7 +31,7 @@ stages:
       inputs:
         command: 'publish'
         publishWebProjects: false
-        projects: 'ApplicationApi/Azure.CI.CD.Demo.API/Azure.CI.CD.Demo.API.csproj'
+        projects: '$(apiWorkingDirectory)/Azure.CI.CD.Demo.API/Azure.CI.CD.Demo.API.csproj'
         arguments: '--configuration $(buildConfiguration) --output $(build.artifactstagingdirectory)'
         zipAfterPublish: true
       displayName: 'dotnet publish $(buildConfiguration)'
@@ -60,17 +63,20 @@ stages:
     - script: |
         npm install -g @angular/cli
         npm install
+      workingDirectory: $(uiWorkingDirectory)
       displayName: 'npm install'
 
     - script: ng test --watch=false
+      workingDirectory: $(uiWorkingDirectory)
       displayName: 'ng test'
 
-    - script: ng build --prod
+    - script: ng build --prod --aot=true
+      workingDirectory: $(uiWorkingDirectory)
       displayName: 'ng build'
 
     - task: PublishBuildArtifacts@1
       inputs:
-        PathtoPublish: '$(build.artifactstagingdirectory)'
+        PathtoPublish: '$(uiWorkingDirectory)/dist'
         ArtifactName: 'ui'
         ArtifactType: 'Container'
       displayName: Publish UI Build Artifacts
