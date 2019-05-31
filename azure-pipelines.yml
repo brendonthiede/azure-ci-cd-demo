@@ -62,7 +62,7 @@ stages:
 
     - script: |
         npm install -g @angular/cli
-        npm install
+        npm ci
       workingDirectory: $(uiWorkingDirectory)
       displayName: 'npm install'
 
