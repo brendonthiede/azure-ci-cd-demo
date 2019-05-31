@@ -2,9 +2,6 @@ trigger:
   branches:
     include:
       - master
-  paths:
-    exclude:
-      - ApplicationUi
 
 pool:
   vmImage: 'ubuntu-latest'
@@ -12,34 +9,63 @@ pool:
 variables:
   buildConfiguration: 'Release'
 
-steps:
-- task: DotNetCoreCLI@2
-  inputs:
-    command: 'test'
-    publishWebProjects: false
-    projects: 'ApplicationApi/Azure.CI.CD.Demo.API.Tests/Azure.CI.CD.Demo.API.Tests.csproj'
-    publishTestResults: true
-  displayName: 'dotnet test'
+jobs:
+- job: Test_and_Build_Dotnet_API
+  displayName: 'Test and Build .NET API'
+  steps:
+  - task: DotNetCoreCLI@2
+    inputs:
+      command: 'test'
+      publishWebProjects: false
+      projects: 'ApplicationApi/Azure.CI.CD.Demo.API.Tests/Azure.CI.CD.Demo.API.Tests.csproj'
+      publishTestResults: true
+    displayName: 'dotnet test'
 
-- task: DotNetCoreCLI@2
-  inputs:
-    command: 'publish'
-    publishWebProjects: false
-    projects: 'ApplicationApi/Azure.CI.CD.Demo.API/Azure.CI.CD.Demo.API.csproj'
-    arguments: '--configuration $(buildConfiguration) --output $(build.artifactstagingdirectory)'
-    zipAfterPublish: true
-  displayName: 'dotnet publish $(buildConfiguration)'
+  - task: DotNetCoreCLI@2
+    inputs:
+      command: 'publish'
+      publishWebProjects: false
+      projects: 'ApplicationApi/Azure.CI.CD.Demo.API/Azure.CI.CD.Demo.API.csproj'
+      arguments: '--configuration $(buildConfiguration) --output $(build.artifactstagingdirectory)'
+      zipAfterPublish: true
+    displayName: 'dotnet publish $(buildConfiguration)'
 
-- task: PublishBuildArtifacts@1
-  inputs:
-    PathtoPublish: '$(build.artifactstagingdirectory)'
-    ArtifactName: 'drop'
-    ArtifactType: 'Container'
-  displayName: Publish Build Artifacts
+  - task: PublishBuildArtifacts@1
+    inputs:
+      PathtoPublish: '$(build.artifactstagingdirectory)'
+      ArtifactName: 'api'
+      ArtifactType: 'Container'
+    displayName: Publish API Build Artifacts
 
-- task: PublishBuildArtifacts@1
-  inputs:
-    PathtoPublish: '$(build.artifactstagingdirectory)'
-    ArtifactName: 'scripts'
-    ArtifactType: 'Container'
-  displayName: Publish Scripts
+  - task: PublishBuildArtifacts@1
+    inputs:
+      PathtoPublish: 'scripts'
+      ArtifactName: 'scripts'
+      ArtifactType: 'Container'
+    displayName: Publish Scripts
+
+- job: Test_and_Build_Angular_UI
+  displayName: 'Test and Build Angular UI'
+  steps:
+  - task: NodeTool@0
+    inputs:
+      versionSpec: '10.x'
+    displayName: 'Install Node.js'
+
+  - script: |
+      npm install -g @angular/cli
+      npm install
+    displayName: 'npm install'
+
+  - script: ng test --watch=false
+    displayName: 'ng test'
+
+  - script: ng build --prod
+    displayName: 'ng build'
+
+  - task: PublishBuildArtifacts@1
+    inputs:
+      PathtoPublish: '$(build.artifactstagingdirectory)'
+      ArtifactName: 'ui'
+      ArtifactType: 'Container'
+    displayName: Publish UI Build Artifacts
