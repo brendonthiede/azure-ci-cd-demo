@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
+using Azure.CI.CD.Demo.API.Data.Contexts;
+using Azure.CI.CD.Demo.API.Data.Models;
 
 namespace Azure.CI.CD.Demo.API.Controllers
 {
@@ -10,18 +12,30 @@ namespace Azure.CI.CD.Demo.API.Controllers
     [ApiController]
     public class ValuesController : ControllerBase
     {
+        private readonly ValueContext _dbContext;
+
+        public ValuesController(ValueContext dbContext) {
+            _dbContext = dbContext;
+        }
+
         // GET api/values
         [HttpGet]
-        public ActionResult<IEnumerable<string>> Get()
+        public ActionResult<IEnumerable<Value>> Get()
         {
-            return new string[] { "value1", "value2" };
+            var results = from value in _dbContext.Values
+                          orderby value.ValueId
+                          select value;
+            return results.ToArray();
         }
 
         // GET api/values/5
         [HttpGet("{id}")]
-        public ActionResult<string> Get(int id)
+        public ActionResult<Value> Get(int id)
         {
-            return "value";
+            var result = from value in _dbContext.Values
+                          where value.ValueId.Equals(id)
+                          select value;
+            return result.FirstOrDefault();
         }
 
         // POST api/values

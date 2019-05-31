@@ -6,10 +6,13 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.HttpsPolicy;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using Azure.CI.CD.Demo.API.Data.Contexts;
+using Azure.CI.CD.Demo.API.Data.Models;
 
 namespace Azure.CI.CD.Demo.API
 {
@@ -26,6 +29,11 @@ namespace Azure.CI.CD.Demo.API
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_2);
+
+            services.AddDbContext<ValueContext>(options =>
+            {
+                options.UseSqlServer(Configuration.GetConnectionString("Values"));
+            });
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -43,6 +51,15 @@ namespace Azure.CI.CD.Demo.API
 
             app.UseHttpsRedirection();
             app.UseMvc();
+
+            if (env.IsDevelopment())
+            {
+                using (var scope = app.ApplicationServices.CreateScope())
+                {
+                    var context = scope.ServiceProvider.GetService<ValueContext>();
+                    context.Database.Migrate();
+                }
+            }
         }
     }
 }
