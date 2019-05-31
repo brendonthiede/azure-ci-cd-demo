@@ -15,16 +15,31 @@ variables:
 steps:
 - task: DotNetCoreCLI@2
   inputs:
-    command: "publish"
+    command: 'test'
     publishWebProjects: false
-    projects: "ApplicationApi/Azure.CI.CD.Demo.API/Azure.CI.CD.Demo.API.csproj"
-    arguments: "--configuration $(buildConfiguration) --output $(build.artifactstagingdirectory)"
+    projects: 'ApplicationApi/Azure.CI.CD.Demo.API.Tests/Azure.CI.CD.Demo.API.Tests.csproj'
+    publishTestResults: true
+  displayName: 'dotnet test'
+
+- task: DotNetCoreCLI@2
+  inputs:
+    command: 'publish'
+    publishWebProjects: false
+    projects: 'ApplicationApi/Azure.CI.CD.Demo.API/Azure.CI.CD.Demo.API.csproj'
+    arguments: '--configuration $(buildConfiguration) --output $(build.artifactstagingdirectory)'
     zipAfterPublish: true
   displayName: 'dotnet publish $(buildConfiguration)'
 
 - task: PublishBuildArtifacts@1
   inputs:
-    PathtoPublish: "$(build.artifactstagingdirectory)"
-    ArtifactName: "drop"
-    ArtifactType: "Container"
+    PathtoPublish: '$(build.artifactstagingdirectory)'
+    ArtifactName: 'drop'
+    ArtifactType: 'Container'
   displayName: Publish Build Artifacts
+
+- task: PublishBuildArtifacts@1
+  inputs:
+    PathtoPublish: '$(build.artifactstagingdirectory)'
+    ArtifactName: 'scripts'
+    ArtifactType: 'Container'
+  displayName: Publish Scripts
