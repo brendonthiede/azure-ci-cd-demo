@@ -76,7 +76,7 @@ stages:
 
     - task: PublishBuildArtifacts@1
       inputs:
-        PathtoPublish: '$(uiWorkingDirectory)/dist'
+        PathtoPublish: '$(uiWorkingDirectory)/dist/azure-ci-cd-demo-ui'
         ArtifactName: 'ui'
         ArtifactType: 'Container'
       displayName: Publish UI Build Artifacts
