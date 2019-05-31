@@ -13,6 +13,18 @@ variables:
   buildConfiguration: 'Release'
 
 steps:
-- script: dotnet publish --configuration $(buildConfiguration)
-  workingDirectory: ApplicationApi
+- task: DotNetCoreCLI@2
+  inputs:
+    command: "publish"
+    publishWebProjects: false
+    projects: "ApplicationApi/Azure.CI.CD.Demo.API/Azure.CI.CD.Demo.API.csproj"
+    arguments: "--configuration $(buildConfiguration) --output $(build.artifactstagingdirectory)"
+    zipAfterPublish: true
   displayName: 'dotnet publish $(buildConfiguration)'
+
+- task: PublishBuildArtifacts@1
+  inputs:
+    PathtoPublish: "$(build.artifactstagingdirectory)"
+    ArtifactName: "drop"
+    ArtifactType: "Container"
+  displayName: Publish Build Artifacts
