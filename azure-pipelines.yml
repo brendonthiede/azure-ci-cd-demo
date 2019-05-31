@@ -5,9 +5,11 @@
 
 trigger:
   branches:
-    include: master
+    include:
+      - master
   paths:
-    exclude: ApplicationUi
+    exclude:
+      - ApplicationUi
 
 pool:
   vmImage: 'windows-latest'
